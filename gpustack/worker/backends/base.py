@@ -212,6 +212,16 @@ class InferenceServer(ABC):
                     f"Inference backend {self._model.backend} not specified or not found"
                 )
 
+            # Inject backend API key into backend parameters if configured
+            api_key = getattr(self._model, "backend_api_key", None)
+            api_key_param = getattr(self.inference_backend, "api_key_parameter", None)
+            if api_key and api_key_param:
+                if self._model.backend_parameters is None:
+                    self._model.backend_parameters = []
+                # Ensure we don't inject it twice if the user somehow provided it
+                if not find_parameter(self._model.backend_parameters, [api_key_param.lstrip("-")]):
+                    self._model.backend_parameters.extend([api_key_param, api_key])
+
             logger.info("Preparing model files...")
 
             self._until_model_instance_starting()
