@@ -28,6 +28,7 @@ from gpustack_runtime.deployer.docker import DockerWorkloadPlan
 from gpustack_runtime.deployer import WorkloadPlan
 
 from gpustack.client.generated_clientset import ClientSet
+from gpustack.utils.command import find_parameter
 from gpustack import envs
 from gpustack.config.config import Config, set_global_config
 from gpustack.logging import setup_logging
