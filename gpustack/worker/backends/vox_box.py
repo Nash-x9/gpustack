@@ -163,9 +163,7 @@ class VoxBoxServer(InferenceServer):
         arguments.extend(user_backend_parameters)
         # Append immutable arguments to ensure proper operation for accessing.
         # Only add if not already present in arguments.
-        extend_args_no_exist(
-            arguments, ("--host", self._worker.ip), ("--port", str(port))
-        )
+        extend_args_no_exist(arguments, ("--host", "127.0.0.1"), ("--port", str(port)))
         if self._model_instance.gpu_indexes is not None:
             extend_args_no_exist(
                 arguments,

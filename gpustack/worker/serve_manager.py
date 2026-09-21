@@ -1007,12 +1007,54 @@ class ServeManager:
                         fallback_registry,
                     )
                     logger.info(f"Provisioning model instance {mi.name}")
-                    server_ins.start()
+
+                    # Start the native proxy if necessary
+                    import multiprocessing
+                    from gpustack.worker.proxy import start_proxy_process
+                    from gpustack.utils.network import get_free_port
+
+                    proxy_process = None
+                    worker_ip = getattr(server_ins._worker, "ip", "127.0.0.1")
+
+                    if worker_ip != "127.0.0.1":
+                        serve_port = mi.ports[0] if mi.ports else mi.port
+                        internal_port = get_free_port("40000-50000")
+                        # Override the server port to be internal_port so the backend uses it.
+                        # Since we cannot easily modify the port passed in command without breaking ctx.port dependencies,
+                        # we inject this internal port so the proxy listens on serve_port, and backend on internal_port.
+                        # Wait, the user requested not to change ctx.port logic. But we must use internal_port for backend if proxy is on worker_ip:ctx.port
+                        # Let's temporarily override the port property just for the backend startup if needed.
+                        original_port = mi.port
+                        original_ports = list(mi.ports) if mi.ports else []
+                        mi.port = internal_port
+                        if mi.ports:
+                            mi.ports[0] = internal_port
+
+                        proxy_process = multiprocessing.Process(
+                            target=start_proxy_process,
+                            args=(worker_ip, serve_port, internal_port, cfg.token),
+                            daemon=True,
+                        )
+                        proxy_process.start()
+
+                    try:
+                        server_ins.start()
+                    finally:
+                        if proxy_process and proxy_process.is_alive():
+                            proxy_process.terminate()
+                            proxy_process.join(timeout=2)
+                        # Restore original ports
+                        if proxy_process:
+                            mi.port = original_port
+                            if mi.ports:
+                                mi.ports = original_ports
+
                     logger.info(f"Finished provisioning model instance {mi.name}")
                 except Exception as e:
                     logger.exception(
                         f"Error provisioning model instance {mi.name}: {e}"
                     )
+
                     raise e
 
     def sync_model_instances_inference_health(self):

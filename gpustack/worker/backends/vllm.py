@@ -652,7 +652,7 @@ class VLLMServer(InferenceServer):
 
         extend_args_no_exist(
             arguments,
-            ("--host", self._worker.ip),
+            ("--host", "127.0.0.1"),
             ("--port", str(ctx.port)),
             ("--served-model-name", self._model_instance.model_name),
         )

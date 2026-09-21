@@ -457,9 +457,7 @@ class SGLangServer(InferenceServer):
         arguments.extend(user_backend_parameters)
 
         # Set host and port.
-        extend_args_no_exist(
-            arguments, ("--host", self._worker.ip), ("--port", str(port))
-        )
+        extend_args_no_exist(arguments, ("--host", "127.0.0.1"), ("--port", str(port)))
 
         injected = self._get_injected_backend_parameters(
             arguments, user_backend_parameters, entrypoint
@@ -492,9 +490,7 @@ class SGLangServer(InferenceServer):
         arguments.extend(user_backend_parameters)
 
         # Set host and port.
-        extend_args_no_exist(
-            arguments, ("--host", self._worker.ip), ("--port", str(port))
-        )
+        extend_args_no_exist(arguments, ("--host", "127.0.0.1"), ("--port", str(port)))
 
         injected = self._get_injected_backend_parameters(
             arguments, user_backend_parameters, entrypoint
